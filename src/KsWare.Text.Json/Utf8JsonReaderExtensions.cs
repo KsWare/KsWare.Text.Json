@@ -10,8 +10,7 @@ public static class Utf8JsonReaderExtensions {
 		return value;
 	}
 
-	public static bool TryReadProperty<T>(this ref Utf8JsonReader reader, out string propertyName, out T value,
-		JsonSerializerOptions options) {
+	public static bool TryReadProperty<T>(this ref Utf8JsonReader reader, out string propertyName, out T value, JsonSerializerOptions options) {
 		if (reader.TokenType != JsonTokenType.PropertyName) {
 			//throw new JsonException($"PropertyName expected but {reader.TokenType} found.");
 			propertyName = null;
@@ -35,15 +34,23 @@ public static class Utf8JsonReaderExtensions {
 		return true;
 	}
 
-	public static void ReadStartObject(this ref Utf8JsonReader reader) {
-		if (reader.TokenType != JsonTokenType.StartObject)
-			throw new JsonException($"StartObject expected but {reader.TokenType} found.");
+	public static string ReadPropertyName(this ref Utf8JsonReader reader) {
+		if (reader.TokenType != JsonTokenType.PropertyName)
+			throw new JsonException($"PropertyName expected but {reader.TokenType} found.");
+			
+		var propertyName = reader.GetString();
 		reader.Read();
+		return propertyName;
 	}
 
-	public static void ReadEndObject(this ref Utf8JsonReader reader) {
-		if (reader.TokenType != JsonTokenType.EndObject)
-			throw new JsonException($"EndObject expected but {reader.TokenType} found.");
+	public static void ReadStartObject(this ref Utf8JsonReader reader) => ReadToken(ref reader, JsonTokenType.StartObject);
+	public static void ReadEndObject(this ref Utf8JsonReader reader) => ReadToken(ref reader, JsonTokenType.EndObject);
+	public static void ReadStartArray(this ref Utf8JsonReader reader) => ReadToken(ref reader, JsonTokenType.StartArray);
+	public static void ReadEndArray(this ref Utf8JsonReader reader) => ReadToken(ref reader, JsonTokenType.EndArray);
+	
+	public static void ReadToken(this ref Utf8JsonReader reader, JsonTokenType expectedJsonTokenType) {
+		if (reader.TokenType != expectedJsonTokenType)
+			throw new JsonException($"{expectedJsonTokenType} expected but {reader.TokenType} found.");
 		reader.Read();
 	}
 

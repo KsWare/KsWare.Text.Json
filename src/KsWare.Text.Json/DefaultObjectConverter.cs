@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.ComponentModel;
-using System.Diagnostics.Metrics;
 using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
@@ -8,18 +7,19 @@ using System.Text.Json.Serialization;
 
 namespace KsWare.Text.Json {
 
-	public class DefaultObjectConverter: JsonConverter<object> {
+	// Because all useful things of System.Text.JsonConverter are internal we have to reinvent the wheel :-( 
+	// But while we are at it, we might as well make a few things better
+	// and for time/technical reasons, unfortunately, some things also worse and here you are asked to make this implementation better.
+
+	public partial class DefaultObjectConverter: JsonConverter<object> {
+
+		public static readonly DefaultObjectConverter Default = new DefaultObjectConverter();
 
 		public bool SupportDefaultValueAttribute { get; set; }
 		// OPTIONAL use/create JsonDefaultValueAttribute
 
 		public override bool CanConvert(Type typeToConvert) => true; // OPTIONAL include/exclude list
-
-		public override object Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
-			var result = Activator.CreateInstance(typeToConvert);
-			return result;
-		}
-
+		
 		public override void Write(Utf8JsonWriter writer, object? value, JsonSerializerOptions options) {
 			var t = value != null ? value.GetType() : null;
 			switch (value) {
@@ -139,7 +139,7 @@ namespace KsWare.Text.Json {
 						member.Value = pi.GetValue(value);
 						member.MemberType = pi.PropertyType;
 						// When applied to a property, indicates that non-public getters and setters can be used for serialization and deserialization. Non-public properties are not supported.
-						var includePrivate = mi.GetCustomAttribute<JsonIncludeAttribute>()!=null;
+						var includePrivate = mi.GetCustomAttribute<JsonIncludeAttribute>()!=null; // TODO
 						break;
 					default:
 						continue;
@@ -223,27 +223,4 @@ namespace KsWare.Text.Json {
 		}
 
 	}
-}
-
-internal class Member {
-
-	private readonly MemberInfo _mi;
-
-	public Member(MemberInfo mi) {
-		_mi = mi;
-		Name = _mi.Name;
-	}
-
-	public string Name { get; set; }
-
-	public MemberInfo MemberInfo => _mi;
-
-	public object? Value { get; set; }
-	public Type MemberType { get; set; }
-	public int Order { get; set; }
-	public JsonNumberHandling? NumberHandling { get; set; }
-	public JsonConverter Converter { get; set; }
-	public int OriginalOrder { get; set; }
-	public bool IsExtensionData { get; set; }
-
 }
