@@ -6,4 +6,4 @@ An extension for System.Text.Json
 - Utf8JsonReaderExtensions
 - Utf8JsonWriterExtensions
 
-Early developent state. Not for use.
+Early stage of development. Very experimental. Not suitable for use.

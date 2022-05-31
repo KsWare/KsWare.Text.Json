@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Text.Json.Serialization;
 
-internal class Member {
+public class Member {
 
 	private readonly MemberInfo _mi;
 	private readonly object _instance;
